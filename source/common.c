@@ -31,29 +31,29 @@ const int pin_to_gpio_rev3[41] = {-1, -1, -1, 2, -1, 3, -1, 4, 14, -1, 15, 17, 1
 const int pin_to_gpio_nanopi [64] ={
     -1,
     /* 24 Pin */
-    -1, -1,   //1, 2
-    12, -1,   //3, 4
-    11, -1,   //5, 6
-    203, 198, //7, 8
-    -1,  199, //9, 10
-    0,   6,   //11, 12
-    2,   -1,  //13, 14
-    3,  200,  //15, 16
-    -1, 201,  //17, 18
-    64, -1,   //19, 20
-    65, 1,    //21, 22
-    66, 67,   //23, 24
+     -1,  -1,  //1, 2
+     12,  -1,  //3, 4
+     11,  -1,  //5, 6
+    203, 198,  //7, 8
+     -1, 199,  //9, 10
+      0,   6,  //11, 12
+      2,  -1,  //13, 14
+      3, 200,  //15, 16
+     -1, 201,  //17, 18
+     64,  -1,  //19, 20
+     65,   1,  //21, 22
+     66,  67,  //23, 24
 
     /* 12 Pin */
-    -1, -1,   //25, 26
-    -1, -1,   //27, 28
-    -1, -1,   //29, 30
-    -1, -1,   //31, 32
-    -1, -1,   //33, 34
-    -1, -1,   //35, 36
+     -1,  -1,   //25, 26
+     -1,  -1,   //27, 28
+     -1, 267,   //29, 30
+     17,  -1,   //31, 32
+     -1,  -1,   //33, 34
+     -1,  -1,   //35, 36
 
     /* UART0 Tx,Rx */
-    4, 5,     //37, 38
+      4,   5,    //37, 38
 
     /* 39~63 */
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -87,11 +87,10 @@ int get_gpio_number(int channel, unsigned int *gpio)
     if (gpio_mode != BOARD && gpio_mode != BCM)
     {
         PyErr_SetString(PyExc_RuntimeError, "Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GPIO.setmode(GPIO.BCM)");
-        return 3;
-    }
+        return 3;235  }
 
     // check channel number is in range
-    if ( (gpio_mode == BCM && (channel < 0 || channel > 203))
+    if ( (gpio_mode == BCM && (channel < 0 || channel > 263))
       || (gpio_mode == BOARD && (channel < 1 || channel > 26) && rpiinfo.p1_revision != 3)
       || (gpio_mode == BOARD && (channel < 1 || channel > 40) && rpiinfo.p1_revision == 3) )
     {

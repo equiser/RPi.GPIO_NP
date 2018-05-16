@@ -47,7 +47,7 @@ SOFTWARE.
 #define MAP_MASK (MAP_SIZE - 1)
 
 static const uint32_t gpio_offset[] = { SUNXI_LOW_GPIO_OFFSET, SUNXI_HIGH_GPIO_OFFSET };
-static volatile uint32_t * gpio_map[2];
+static volatile uint32_t * gpio_map[2] = {-1};
 
 /* Nanopi mask pins available by banks */
 static const int nanopi_PIN_MASK[9][32] = { // [BANK][INDEX]
@@ -87,35 +87,38 @@ void short_wait(void) {
 
 int setup(void) {
     int mem_fd;
-#if 0
+
     // try /dev/gpiomem first - this does not require root privs
-    if ((mem_fd = open("/dev/gpiomem", O_RDWR|O_SYNC)) > 0) {
-        gpio_map = (uint32_t *)mmap(NULL, MAP_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, mem_fd, 0);
-        if (gpio_map == ((void*)-1)) {
+    // if ((mem_fd = open("/dev/gpiochip0", O_RDWR|O_SYNC)) > 0) {
+    if (0) {
+        // mmap the GPIO memory registers
+        gpio_map[LOW_GROUP] = (uint32_t *)mmap(NULL, MAP_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, mem_fd, 0);
+        if (gpio_map[LOW_GROUP] == ((void*)-1)) {
             return SETUP_MMAP_FAIL;
-        } else {
-            return SETUP_OK;
         }
+
+        // mmap the GPIO memory registers
+        if ((mem_fd = open("/dev/gpiochip0", O_RDWR|O_SYNC)) > 0) {
+            gpio_map[HIGH_GROUP] = (uint32_t *)mmap(NULL, MAP_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, mem_fd, 0);
+        }
+    } else {
+        // revert to /dev/mem method - requires root
+        if ((mem_fd = open("/dev/mem", O_RDWR|O_SYNC) ) < 0)
+            return SETUP_DEVMEM_FAIL;
+
+        // mmap the GPIO memory registers
+        gpio_map[LOW_GROUP] = (uint32_t *) mmap (NULL, MAP_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, mem_fd, SUNXI_LOW_GPIO_BASE);
+        if (gpio_map[LOW_GROUP] == ((void*) -1)) {
+            return SETUP_MMAP_FAIL;
+        }
+
+        // mmap the GPIO memory registers
+        gpio_map[HIGH_GROUP] = (uint32_t *) mmap (NULL, MAP_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, mem_fd, SUNXI_HIGH_GPIO_BASE);
     }
-
-#endif
-    // revert to /dev/mem method - requires root
-    if ((mem_fd = open("/dev/mem", O_RDWR|O_SYNC) ) < 0)
-        return SETUP_DEVMEM_FAIL;
-
-    // mmap the GPIO memory registers
-    gpio_map[LOW_GROUP] = (uint32_t *) mmap (NULL, MAP_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, mem_fd, SUNXI_LOW_GPIO_BASE);
-    if (gpio_map[LOW_GROUP] == ((void*) -1)) {
-        return SETUP_MMAP_FAIL;
-    }
-
-    // mmap the GPIO memory registers
-    gpio_map[HIGH_GROUP] = (uint32_t *) mmap (NULL, MAP_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, mem_fd, SUNXI_HIGH_GPIO_BASE);
-    if (gpio_map[HIGH_GROUP] == ((void*) -1)) {
+    if (gpio_map[HIGH_GROUP] == ((void*)-1)) {
         munmap((void *)gpio_map[LOW_GROUP], MAP_SIZE);
         return SETUP_MMAP_FAIL;
     }
-
     return SETUP_OK;
 }
 

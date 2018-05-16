@@ -87,7 +87,8 @@ int get_gpio_number(int channel, unsigned int *gpio)
     if (gpio_mode != BOARD && gpio_mode != BCM)
     {
         PyErr_SetString(PyExc_RuntimeError, "Please set pin numbering mode using GPIO.setmode(GPIO.BOARD) or GPIO.setmode(GPIO.BCM)");
-        return 3;235  }
+        return 3;
+    }
 
     // check channel number is in range
     if ( (gpio_mode == BCM && (channel < 0 || channel > 263))
